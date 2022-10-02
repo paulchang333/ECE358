@@ -27,6 +27,10 @@ class DES:
 
 DES_lis = []
 
+EN = 0
+P_idle = 0
+P_loss = 0
+
 # provided to us 
 c = 1000000
 l = 2000
@@ -70,15 +74,57 @@ while arrival_time < 10 or obs_time < 10:
     
 DES_lis.sort(key = lambda x:x.time)
 
+for i in DES_lis:
+    print ("type: " +i.event + "time: ", i.time)
 
+T = 1000
+eventTypeArr = [] # for organizing event types choronologically
+eventTimeArr = [] # for organizing event times chronologically
+bufferSize = 0
+n_a = 0 # no of arrival events
+n_d = 0 # no of departure events
+n_o = 0 # no of observer events
+total_events = 0 # no of all events
+last_departure_time = 0
+bufferSizeArray = [] # counting the buffer size when observer is detected
+sumOfBufferSize = 0 # intermediate variable to find En
+En = 0
+idleTime = 0 #intermediate variable to find Pidle
+Pidle = 0
 
+for i in range (T): # runs from 0 to 999
 
+    while len(DES_lis) and i == math.floor(DES_lis[0].time):
+        
+        eventTypeArr.append(DES_lis[0].event)
+        eventTimeArr.append(DES_lis[0].time)
+        
+        if (DES_lis[0].event == "arrival"):
+            n_a += 1
+        elif (DES_lis[0].event == "departure"):
+            n_d += 1
+            last_departure_time = DES_lis[0].time
+        elif (DES_lis[0].event == "observer"):
+            n_o += 1
+            bufferSize = n_a - n_d
+            bufferSizeArray.append(bufferSize)
+        
+        # 0.8% error case, when arrival is followed with an arrival, fix when 5% edge case is too eh
+        if ((n_a == n_d + 1) and n_d != 0):
+            idleTime += DES_lis[0].time - last_departure_time
 
+        DES_lis.pop(0)
 
+for i in range (len(bufferSizeArray)):
+    sumOfBufferSize += bufferSizeArray[i]
 
-  
+for i in range (len(eventTypeArr)):
+    print(str(eventTypeArr[i]) + " " + str(eventTimeArr[i]))
 
-  
+En = sumOfBufferSize / len(bufferSizeArray)
 
-  
-  
+Pidle = idleTime / T
+
+print(En)
+print(Pidle)
+
